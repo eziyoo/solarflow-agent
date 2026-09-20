@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolarFlow — solar portfolio dashboard</title>
+<meta name="description" content="SolarFlow, a portfolio dashboard for commercial and industrial solar and battery storage projects. No framework, no dependencies, synthetic data.">
+<meta name="theme-color" content="#fafaf7">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a1024'/%3E%3Cpath d='M10 9h12M10 16h9M10 23h12' stroke='%233d6bff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<script>
+  /* Lock the page before anything paints. Fails closed. */
+  try {
+    if (sessionStorage.getItem('solarflow.auth') !== '1')
+      document.documentElement.classList.add('sf-locked');
+  } catch (e) { document.documentElement.classList.add('sf-locked'); }
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+<a class="skip" href="#sfMain">Skip to the dashboard</a>
+
+<!-- Icon sprite (subset of the one in index.html) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-.6 4"/><path d="M20 4v7h-7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17.5v.01"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
+  <symbol id="i-signout" viewBox="0 0 24 24"><path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M10 8l-4 4 4 4M6 12h9"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/><circle cx="12" cy="16" r="1.5"/><path d="M3 20h18"/></symbol>
+</svg>
+
+<header class="sf-bar">
+  <div class="sf-wrap sf-bar-inner">
+    <a href="https://github.com/eziyoo/solarflow-agent" class="sf-brand" aria-label="SolarFlow on GitHub">
+      <span class="logo-mark"><span>E</span></span>
+      <span class="sf-brand-name">Eziyo Ehsani</span>
+    </a>
+    <span class="sf-tag">SolarFlow demo</span>
+    <div class="sf-user" id="sfUser">
+      <span class="sf-avatar" id="sfAvatar" aria-hidden="true">SG</span>
+      <span class="sf-user-text">
+        <span class="sf-user-name" id="sfUserName"></span>
+        <span class="sf-user-mail" id="sfUserMail"></span>
+      </span>
+    </div>
+    <div data-lang class="langsw--bar"></div>
+    <button class="sf-back sf-signout" id="sfSignOut" type="button">
+      <svg class="i"><use href="#i-signout"/></svg><span class="sf-back-full">&nbsp;Sign out</span>
+    </button>
+    <a href="https://github.com/eziyoo/solarflow-agent" class="sf-back">
+      <svg class="i f"><use href="#i-github"/></svg><span class="sf-back-full">&nbsp;Source</span>
+    </a>
+  </div>
+</header>
+
+<main class="sf" id="sfMain">
+  <div class="sf-wrap">
+
+    <div class="sf-head">
+      <div>
+        <h1>Solar Portfolio</h1>
+        <p class="sf-sub">C&amp;I solar and storage across Italy. Synthetic demo data.</p>
+      </div>
+      <div class="sf-head-actions">
+        <button class="btn btn--outline btn--sm" id="resetBtn">
+          <svg class="i"><use href="#i-refresh"/></svg> <span id="resetLabel">Reset data</span>
+        </button>
+        <button class="btn btn--primary btn--sm magnet" id="addBtn">
+          <svg class="i"><use href="#i-plus"/></svg> Add plant
+        </button>
+      </div>
+    </div>
+
+    <div class="sf-tabs" role="tablist" aria-label="Dashboard views">
+      <button role="tab" data-tab="overview"   aria-selected="true"  aria-controls="panel-overview"   id="tab-overview">Overview</button>
+      <button role="tab" data-tab="pipeline"   aria-selected="false" aria-controls="panel-pipeline"   id="tab-pipeline"   tabindex="-1">Pipeline</button>
+      <button role="tab" data-tab="operations" aria-selected="false" aria-controls="panel-operations" id="tab-operations" tabindex="-1">Operations</button>
+    </div>
+
+    <!-- ===================== OVERVIEW ===================== -->
+    <div role="tabpanel" data-panel="overview" id="panel-overview" aria-labelledby="tab-overview" class="sf-panels">
+      <section class="sf-kpis" id="ovKpis" aria-label="Portfolio summary"></section>
+
+      <section class="sf-panel">
+        <h2>Progress to target</h2>
+        <div id="ovTarget"></div>
+      </section>
+
+      <div class="sf-two">
+        <section class="sf-panel">
+          <h2>Connected per month <span class="sf-panel-note">Last 24 months</span></h2>
+          <div class="sf-months" id="ovConn"></div>
+        </section>
+
+        <section class="sf-panel">
+          <h2>Capacity by region</h2>
+          <div id="ovRegions"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================== PIPELINE ===================== -->
+    <div role="tabpanel" data-panel="pipeline" id="panel-pipeline" aria-labelledby="tab-pipeline" class="sf-panels" hidden>
+      <section class="sf-panel">
+        <h2>Development pipeline
+          <span class="sf-panel-note">Click a stage to filter</span>
+          <span class="sf-toggle">
+            <button type="button" data-funnel="count" aria-pressed="true">Plants</button>
+            <button type="button" data-funnel="mwp" aria-pressed="false">MWp</button>
+          </span>
+        </h2>
+        <div class="sf-chart" id="pipeFunnel"></div>
+      </section>
+
+      <section class="sf-panel">
+        <h2>GSE tariff deadlines <span class="sf-panel-note">MWp reaching its deadline, by quarter</span></h2>
+        <div id="pipeRisk"></div>
+      </section>
+
+      <section class="sf-panel">
+        <h2>Alerts</h2>
+        <div id="alerts"></div>
+      </section>
+
+      <section class="sf-panel">
+        <h2>All plants <span class="sf-panel-note" id="tableCount"></span></h2>
+        <div class="sf-toolbar">
+          <label class="sf-field-inline">
+            <svg class="i"><use href="#i-search"/></svg>
+            <input type="search" id="search" placeholder="Search name, code or owner" aria-label="Search plants">
+          </label>
+          <select id="stageFilter" aria-label="Filter by stage"><option value="">All stages</option></select>
+          <select id="regionFilter" aria-label="Filter by region"><option value="">All regions</option></select>
+        </div>
+        <div class="sf-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th data-key="code"     tabindex="0" role="button">Code<span class="sort"></span></th>
+                <th data-key="name"     tabindex="0" role="button">Plant<span class="sort"></span></th>
+                <th data-key="region"   tabindex="0" role="button">Region<span class="sort"></span></th>
+                <th data-key="type"     tabindex="0" role="button">Type<span class="sort"></span></th>
+                <th data-key="size"     tabindex="0" role="button">MWp / MW<span class="sort"></span></th>
+                <th data-key="stage"    tabindex="0" role="button">Stage<span class="sort"></span></th>
+                <th data-key="days"     tabindex="0" role="button">Days in stage<span class="sort"></span></th>
+                <th data-key="tariff"   tabindex="0" role="button">Tariff &euro;/MWh<span class="sort"></span></th>
+                <th data-key="deadline" tabindex="0" role="button">GSE deadline<span class="sort"></span></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p class="sf-empty" id="empty" hidden>No plants match these filters.</p>
+      </section>
+    </div>
+
+    <!-- ===================== OPERATIONS ===================== -->
+    <div role="tabpanel" data-panel="operations" id="panel-operations" aria-labelledby="tab-operations" class="sf-panels" hidden>
+      <section class="sf-kpis" id="opKpis" aria-label="Fleet summary"></section>
+
+      <section class="sf-panel">
+        <h2>Generation against budget <span class="sf-panel-note">Last 24 months</span></h2>
+        <div id="opGen"></div>
+      </section>
+
+      <div class="sf-two">
+        <section class="sf-panel">
+          <h2>Lowest performers</h2>
+          <div id="opBottom"></div>
+        </section>
+
+        <section class="sf-panel">
+          <h2>Storage</h2>
+          <div id="opBess"></div>
+        </section>
+      </div>
+    </div>
+
+    <p class="sf-foot">Data is saved only in this browser, in local storage. Click any row to edit it.</p>
+  </div>
+</main>
+
+<div class="sf-scrim" id="modalScrim">
+  <div class="sf-modal sf" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="sf-modal-head">
+      <strong id="modalTitle">Add project</strong>
+      <button class="sf-x" id="modalClose" aria-label="Close"><svg class="i"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sf-modal-body">
+      <div class="sf-field" id="nameField">
+        <label for="fName">Plant name</label>
+        <input id="fName" type="text" autocomplete="off">
+        <p class="sf-hint">Please enter a name.</p>
+      </div>
+      <div class="sf-grid2">
+        <div class="sf-field"><label for="fCode">Code</label><input id="fCode" type="text" autocomplete="off"></div>
+        <div class="sf-field"><label for="fOwner">Asset manager</label>
+          <select id="fOwner">
+            <option>Giulia R.</option><option>Marco B.</option><option>Sara V.</option>
+            <option>Luca M.</option><option>Elena T.</option>
+          </select>
+        </div>
+        <div class="sf-field"><label for="fRegion">Region</label><select id="fRegion"></select></div>
+        <div class="sf-field"><label for="fType">Type</label><select id="fType"></select></div>
+        <div class="sf-field"><label for="fStage">Stage</label><select id="fStage"></select></div>
+        <div class="sf-field"><label for="fSize">Size (MWp / MW)</label><input id="fSize" type="number" step="0.01" min="0"></div>
+        <div class="sf-field"><label for="fTariff">Tariff &euro;/MWh</label><input id="fTariff" type="number" step="1" min="0"></div>
+        <div class="sf-field"><label for="fDeadline">GSE deadline</label><input id="fDeadline" type="date"></div>
+      </div>
+    </div>
+    <div class="sf-modal-foot">
+      <button class="btn btn--danger btn--sm" id="fDelete" hidden><span id="fDeleteLabel">Delete</span></button>
+      <button class="btn btn--primary btn--sm" id="fSave" style="margin-left:auto">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="sf-gate sf" id="sfGate">
+  <div class="sf-gate-bg" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <form class="sf-gate-card" id="sfGateForm" novalidate>
+    <div class="sf-gate-brand">
+      <span class="logo-mark"><span>E</span></span>
+      <span>SolarFlow</span>
+    </div>
+
+    <h1>Sign in</h1>
+    <p class="sf-gate-sub">SolarFlow portfolio management</p>
+
+    <div class="sf-field">
+      <label for="gEmail">Email</label>
+      <input id="gEmail" type="email" autocomplete="username" spellcheck="false" required>
+    </div>
+    <div class="sf-field">
+      <label for="gPass">Password</label>
+      <input id="gPass" type="password" autocomplete="current-password" required>
+    </div>
+
+    <p class="sf-gate-error" id="gError" role="alert" hidden></p>
+
+    <button class="btn btn--primary sf-gate-submit" id="gSubmit" type="submit">
+      <svg class="i"><use href="#i-lock"/></svg> <span id="gSubmitLabel">Sign in</span>
+    </button>
+
+    <div data-lang class="langsw--gate"></div>
+
+    <p class="sf-gate-foot">
+      Access is by invitation.
+      <a href="https://github.com/eziyoo/solarflow-agent">See the source on GitHub</a>
+    </p>
+  </form>
+</div>
+
+<div class="sf-tip" id="tip" role="status" aria-live="polite"></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
