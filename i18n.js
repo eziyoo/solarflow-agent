@@ -21,9 +21,13 @@
   var IT = {
     /* demo: gate and chrome */
     'Sign in': 'Accedi',
+    'Username': 'Nome utente',
+    'Demo access': 'Accesso demo',
+    'Fill in': 'Compila',
+    'Demo user': 'Utente demo',
+    'Open demo. The data is synthetic.': 'Demo aperta. I dati sono sintetici.',
     'SolarFlow portfolio management': 'Gestione del portafoglio SolarFlow',
     'Password': 'Password',
-    'Access is by invitation.': 'Accesso su invito.',
     'Back to the project': 'Torna al progetto',
     'See the source on GitHub': 'Vedi il codice su GitHub',
     'Source': 'Codice',
@@ -31,7 +35,8 @@
     'Sign out': 'Esci',
     'Checking…': 'Verifica in corso…',
     'Please fill in both fields.': 'Compila entrambi i campi.',
-    'That email or password is not right.': 'Email o password non corretti.',
+    'That username or password is not right.': 'Nome utente o password non corretti.',
+    'Try again in': 'Riprova tra',
     'Too many attempts.': 'Troppi tentativi.',
     'Something went wrong. Please try again.': 'Qualcosa è andato storto. Riprova.',
     'This demo needs https or localhost to sign you in.':
@@ -168,8 +173,7 @@
     'to the project': 'al progetto',
 
     'Skip to the dashboard': 'Vai alla dashboard',
-    'Language': 'Lingua',
-    'Email': 'Email'
+    'Language': 'Lingua'
   };
 
   /* Attribute values that also need translating. */

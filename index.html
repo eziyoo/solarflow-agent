@@ -50,10 +50,10 @@
     </a>
     <span class="sf-tag">SolarFlow demo</span>
     <div class="sf-user" id="sfUser">
-      <span class="sf-avatar" id="sfAvatar" aria-hidden="true">SG</span>
+      <span class="sf-avatar" id="sfAvatar" aria-hidden="true">DU</span>
       <span class="sf-user-text">
         <span class="sf-user-name" id="sfUserName"></span>
-        <span class="sf-user-mail" id="sfUserMail"></span>
+        <span class="sf-user-id" id="sfUserId"></span>
       </span>
     </div>
     <div data-lang class="langsw--bar"></div>
@@ -242,8 +242,8 @@
     <p class="sf-gate-sub">SolarFlow portfolio management</p>
 
     <div class="sf-field">
-      <label for="gEmail">Email</label>
-      <input id="gEmail" type="email" autocomplete="username" spellcheck="false" required>
+      <label for="gUser">Username</label>
+      <input id="gUser" type="text" autocomplete="username" spellcheck="false" required>
     </div>
     <div class="sf-field">
       <label for="gPass">Password</label>
@@ -252,6 +252,14 @@
 
     <p class="sf-gate-error" id="gError" role="alert" hidden></p>
 
+    <div class="sf-gate-hint">
+      <div>
+        <span class="sf-gate-hint-t">Demo access</span>
+        <code>admin / admin</code>
+      </div>
+      <button class="btn btn--outline btn--sm" id="gFill" type="button">Fill in</button>
+    </div>
+
     <button class="btn btn--primary sf-gate-submit" id="gSubmit" type="submit">
       <svg class="i"><use href="#i-lock"/></svg> <span id="gSubmitLabel">Sign in</span>
     </button>
@@ -259,7 +267,7 @@
     <div data-lang class="langsw--gate"></div>
 
     <p class="sf-gate-foot">
-      Access is by invitation.
+      Open demo. The data is synthetic.
       <a href="https://github.com/eziyoo/solarflow-agent">See the source on GitHub</a>
     </p>
   </form>

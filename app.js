@@ -1127,26 +1127,30 @@
      security. Anyone who opens DevTools can get past it. Real
      protection needs a server or a hosted auth service.
 
-     Neither the email nor the password is in this file. What is
-     stored is one SHA-256 digest of  email + newline + password.
+     What the code compares is one SHA-256 digest of
+     username + newline + password, never a stored password.
      To change the credentials, regenerate it with:
 
        node -e 'console.log(require("crypto").createHash("sha256")
-         .update("NEW_EMAIL\nNEW_PASSWORD").digest("hex"))'
+         .update("NEW_USER\nNEW_PASSWORD").digest("hex"))'
+
+     This demo is open to anyone, so the credentials below are
+     published on purpose and the gate offers to fill them in.
      ============================================================ */
 
   var AUTH_KEY = 'solarflow.auth';
-  var MAIL_KEY = 'solarflow.user';
-  var USER_NAME = 'Stefano Gallo';
-  var EXPECTED = '89c4b0a3b00693eaacc4d083ff96f3d36699f47ca5d46f5b84baac10dc4f5db8';
+  var USER_KEY = 'solarflow.user';
+  var USER_NAME = 'Demo user';
+  var DEMO_USER = 'admin', DEMO_PASS = 'admin';
+  var EXPECTED = '6314d7ddef55cbbc946f542ba290b17ad17582142998407ee1d02992a9702701';
   var MAX_TRIES = 5, LOCKOUT_S = 30;
 
   function session(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } }
   function remember(key, v) { try { sessionStorage.setItem(key, v); } catch (e) { /* blocked */ } }
   function forget(key) { try { sessionStorage.removeItem(key); } catch (e) { /* blocked */ } }
 
-  function digest(email, password) {
-    var data = new TextEncoder().encode(email.trim().toLowerCase() + '\n' + password);
+  function digest(user, password) {
+    var data = new TextEncoder().encode(user.trim().toLowerCase() + '\n' + password);
     return crypto.subtle.digest('SHA-256', data).then(function (buf) {
       return [].map.call(new Uint8Array(buf), function (b) {
         return b.toString(16).padStart(2, '0');
@@ -1159,58 +1163,72 @@
       .map(function (w) { return w[0].toUpperCase(); }).join('');
   }
 
-  function showUser(email) {
-    $('#sfUserName').textContent = USER_NAME;
-    $('#sfUserMail').textContent = email || '';
-    $('#sfAvatar').textContent = initials(USER_NAME);
+  function showUser(user) {
+    $('#sfUserName').textContent = T(USER_NAME);
+    $('#sfUserId').textContent = user || '';
+    $('#sfAvatar').textContent = initials(T(USER_NAME));
   }
 
-  function unlock(email) {
+  function unlock(user) {
     remember(AUTH_KEY, '1');
-    if (email) remember(MAIL_KEY, email);
+    if (user) remember(USER_KEY, user);
     document.documentElement.classList.remove('sf-locked');
-    showUser(email || session(MAIL_KEY) || '');
+    showUser(user || session(USER_KEY) || '');
     initApp();
   }
 
   function lock() {
     forget(AUTH_KEY);
-    forget(MAIL_KEY);
+    forget(USER_KEY);
     document.documentElement.classList.add('sf-locked');
     var form = $('#sfGateForm');
     if (form) form.reset();
     gateError('');
-    var f = $('#gEmail');
+    var f = $('#gUser');
     if (f) f.focus();
   }
 
   function gateError(msg) {
     var el = $('#gError');
     if (!el) return;
-    el.textContent = msg;
+    el.textContent = msg ? T(msg) : '';
     el.hidden = !msg;
   }
 
   function initGate() {
     var form = $('#sfGateForm'), btn = $('#gSubmit'), label = $('#gSubmitLabel');
-    var signOut = $('#sfSignOut');
+    var signOut = $('#sfSignOut'), fill = $('#gFill');
     var tries = 0, cooling = false;
 
     if (signOut) signOut.addEventListener('click', lock);
+
+    /* the demo is open, so the gate hands over its own credentials */
+    if (fill) fill.addEventListener('click', function () {
+      $('#gUser').value = DEMO_USER;
+      $('#gPass').value = DEMO_PASS;
+      gateError('');
+      btn.focus();
+    });
+
+    /* the name in the bar is translated, so repaint it on a switch */
+    document.addEventListener('i18n:change', function () {
+      if (session(AUTH_KEY) === '1') showUser(session(USER_KEY) || '');
+    });
+
     if (!form) return;
 
     function coolDown() {
       cooling = true;
       btn.disabled = true;
       var left = LOCKOUT_S;
-      label.textContent = 'Try again in ' + left + 's';
+      label.textContent = T('Try again in') + ' ' + left + 's';
       var t = setInterval(function () {
         left -= 1;
-        if (left > 0) { label.textContent = 'Try again in ' + left + 's'; return; }
+        if (left > 0) { label.textContent = T('Try again in') + ' ' + left + 's'; return; }
         clearInterval(t);
         cooling = false; tries = 0;
         btn.disabled = false;
-        label.textContent = 'Sign in';
+        label.textContent = T('Sign in');
         gateError('');
       }, 1000);
     }
@@ -1219,8 +1237,8 @@
       e.preventDefault();
       if (cooling) return;
 
-      var email = $('#gEmail').value, password = $('#gPass').value;
-      if (!email.trim() || !password) { gateError('Please fill in both fields.'); return; }
+      var user = $('#gUser').value, password = $('#gPass').value;
+      if (!user.trim() || !password) { gateError('Please fill in both fields.'); return; }
 
       if (!(window.crypto && crypto.subtle)) {
         gateError('This demo needs https or localhost to sign you in.');
@@ -1228,20 +1246,20 @@
       }
 
       btn.disabled = true;
-      label.textContent = 'Checking…';
+      label.textContent = T('Checking…');
 
-      digest(email, password).then(function (hex) {
+      digest(user, password).then(function (hex) {
         btn.disabled = false;
-        label.textContent = 'Sign in';
-        if (hex === EXPECTED) { gateError(''); unlock(email.trim().toLowerCase()); return; }
+        label.textContent = T('Sign in');
+        if (hex === EXPECTED) { gateError(''); unlock(user.trim().toLowerCase()); return; }
         tries += 1;
         $('#gPass').value = '';
         if (tries >= MAX_TRIES) { gateError('Too many attempts.'); coolDown(); return; }
-        gateError('That email or password is not right.');
+        gateError('That username or password is not right.');
         $('#gPass').focus();
       }).catch(function () {
         btn.disabled = false;
-        label.textContent = 'Sign in';
+        label.textContent = T('Sign in');
         gateError('Something went wrong. Please try again.');
       });
     });
@@ -1249,11 +1267,11 @@
     /* Wired first, decided second: a sign-out after a reload must
        still leave a working form. */
     if (session(AUTH_KEY) === '1') {
-      unlock(session(MAIL_KEY) || '');
+      unlock(session(USER_KEY) || '');
       return;
     }
     document.documentElement.classList.add('sf-locked');
-    $('#gEmail').focus();
+    $('#gUser').focus();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGate);

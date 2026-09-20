@@ -84,19 +84,24 @@ Each one surfaces as an alert, and clicking an alert opens the plant it refers t
 ![Sign in](docs/sign-in.png)
 
 ```
-s.gallo@sunprime.it
-1234
+username: admin
+password: admin
 ```
 
-**This is a realistic gate, not security.** The check runs in the browser. The
-credentials are not in the source — what is stored is a single SHA-256 digest of
-`email + "\n" + password` — but anyone who opens DevTools can get past it. Real
-protection would need a server or a hosted auth service.
+The gate shows those credentials itself, with a **Fill in** button that types them
+for you, because this demo is meant to be opened by anyone.
 
-To change the credentials, regenerate the digest in `app.js`:
+**So it is a demonstration of a sign-in, not a barrier.** The check runs in the
+browser. What the code compares is a single SHA-256 digest of
+`username + "\n" + password`, never a stored password, but the credentials are
+public and anyone who opens DevTools can get past it anyway. Real protection would
+need a server or a hosted auth service.
+
+To change the credentials, regenerate the digest in `app.js` and update the hint in
+`index.html`:
 
 ```bash
-node -e 'console.log(require("crypto").createHash("sha256").update("NEW_EMAIL\nNEW_PASSWORD").digest("hex"))'
+node -e 'console.log(require("crypto").createHash("sha256").update("NEW_USER\nNEW_PASSWORD").digest("hex"))'
 ```
 
 The session lasts until the tab is closed.
