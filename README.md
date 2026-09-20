@@ -4,6 +4,9 @@ A portfolio management dashboard for commercial and industrial solar and battery
 storage projects, from permitting through to the operating fleet. One HTML page,
 no framework, no dependencies, no build step.
 
+**[Try the live demo](https://www.eziyo.it/project.html?p=solarflow)**. Sign in with
+`admin` / `admin`. Nothing to install, nothing to set up.
+
 ![Overview](docs/overview.png)
 
 ---
@@ -108,7 +111,8 @@ The session lasts until the tab is closed.
 
 ## Running it
 
-No install, no build.
+The quickest way is the [hosted demo](https://www.eziyo.it/project.html?p=solarflow).
+To run it yourself, with no install and no build:
 
 ```bash
 git clone https://github.com/eziyoo/solarflow-agent.git
